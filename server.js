@@ -4,6 +4,10 @@ import bcrypt from "bcrypt-nodejs";
 import cors from "cors";
 import knex from "knex";
 import register from "./controllers/Rigester";
+import signin from "./controllers/Signin";
+import imageHandle from "./controllers/Image";
+import getProfile from "./controllers/Profile";
+
 const db = knex({
   client: "pg",
   connection: {
@@ -29,55 +33,15 @@ app.get("/", (req, res) => {
 });
 
 // Sign in
-app.post("/signin", (req, res) => {
-  const { email, password } = req.body;
-  db.select("email", "hash")
-    .from("login")
-    .where("email", "=", email)
-    .then(data => {
-      if (data.length) {
-        if (bcrypt.compareSync(password, data[0].hash))
-          db("users")
-            .select("*")
-            .where("email", "=", email)
-            .then(user => res.status(200).json(user[0]))
-            .catch(error => res.status(400).json("Unable to get user"));
-      } else {
-        res.status(400).json("Wrong credinatials");
-      }
-    })
-    .catch(error => res.status(400).json("Wrong credinatials"));
-});
+app.post("/signin", (req, res) => signin(db, bcrypt)(req, res));
 
 // Rigester
 app.post("/signup", (req, res) => register(req, res, db, bcrypt));
 
 // get Profile
-app.get("/profile/:id", (req, res) => {
-  const { id } = req.params;
-  console.log(id);
-  db.select("*")
-    .from("users")
-    .where({ id })
-    .then(user => {
-      if (user.length) {
-        res.status(200).json(user[0]);
-      } else {
-        res.status(400).json("User no found");
-      }
-    })
-    .catch(error => res.status(400).json("Error geting the user"));
-});
+app.get("/profile/:id", (req, res) => getProfile(res, req, db));
 
 //Updete Rank
-app.put("/image", (req, res) => {
-  const { id } = req.body;
-  db("users")
-    .where("id", "=", id)
-    .increment("entries", 1)
-    .returning("entries")
-    .then(entries => res.json(entries[0]))
-    .catch(error => res.status(400).json("Some thing wrong"));
-});
+app.put("/image", (req, res) => imageHandle(req, res, db));
 
 app.listen(PORT, () => console.log(`app is running on port ${PORT}`));
