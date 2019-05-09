@@ -2,62 +2,82 @@ import express from "express";
 import bodyParser from "body-parser";
 import bcrypt from "bcrypt-nodejs";
 import cors from "cors";
+import knex from "knex";
+import register from "./controllers/Rigester";
+const db = knex({
+  client: "pg",
+  connection: {
+    host: "127.0.0.1",
+    user: "ayman",
+    password: "7533",
+    database: "smart-brain"
+  }
+});
+
 const PORT = 3001;
 const app = express();
 
-const database = {
-  user: [
-    {
-      id: 1,
-      name: "Ayman",
-      email: "ayman@gmail.com",
-      password: "123"
-    },
-    {
-      id: 2,
-      name: "Suliman",
-      email: "saloom@gmail.com",
-      password: "123"
-    }
-  ]
-};
 app.use(bodyParser.json());
 app.use(cors());
 
 app.get("/", (req, res) => {
-  res.status(200).json(database.user);
+  db("users")
+    .select("*")
+    .then(users => {
+      res.status(200).json(users);
+    });
 });
 
 // Sign in
 app.post("/signin", (req, res) => {
-  if (
-    req.body.email === database.user[0].email &&
-    req.body.password === database.user[0].password
-  ) {
-    res.status(200).json("Success");
-  } else {
-    res.status(400).json("Faild to signin");
-  }
+  const { email, password } = req.body;
+  db.select("email", "hash")
+    .from("login")
+    .where("email", "=", email)
+    .then(data => {
+      if (data.length) {
+        if (bcrypt.compareSync(password, data[0].hash))
+          db("users")
+            .select("*")
+            .where("email", "=", email)
+            .then(user => res.status(200).json(user[0]))
+            .catch(error => res.status(400).json("Unable to get user"));
+      } else {
+        res.status(400).json("Wrong credinatials");
+      }
+    })
+    .catch(error => res.status(400).json("Wrong credinatials"));
 });
 
 // Rigester
-app.post("/signup", (req, res) => {
-  database.user.push({
-    id: database.user.length + 1,
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password
-  });
-  res.json(database.user[database.user.length - 1]);
-});
+app.post("/signup", (req, res) => register(req, res, db, bcrypt));
 
 // get Profile
 app.get("/profile/:id", (req, res) => {
   const { id } = req.params;
   console.log(id);
+  db.select("*")
+    .from("users")
+    .where({ id })
+    .then(user => {
+      if (user.length) {
+        res.status(200).json(user[0]);
+      } else {
+        res.status(400).json("User no found");
+      }
+    })
+    .catch(error => res.status(400).json("Error geting the user"));
+});
 
-  const profile = database.user.filter(user => user.id === id);
-  res.json(profile);
+//Updete Rank
+app.put("/image", (req, res) => {
+  const { id } = req.body;
+  db("users")
+    .where("id", "=", id)
+    .increment("entries", 1)
+    .returning("entries")
+    .then(entries => res.json(entries[0]))
+    .catch(error => res.status(400).json("Some thing wrong"));
 });
 
 app.listen(PORT, () => console.log(`app is running on port ${PORT}`));
