@@ -8,7 +8,7 @@ import signin from "./controllers/Signin";
 import { imageHandle, apiCall } from "./controllers/Image";
 import getProfile from "./controllers/Profile";
 
-const PORT = process.env.port || 3001;
+const PORT = process.env.port;
 const db = knex({
   client: "pg",
   connection: {
