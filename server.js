@@ -8,6 +8,7 @@ import signin from "./controllers/Signin";
 import { imageHandle, apiCall } from "./controllers/Image";
 import getProfile from "./controllers/Profile";
 
+const PORT = process.env.port || 3000;
 const db = knex({
   client: "pg",
   connection: {
@@ -18,7 +19,6 @@ const db = knex({
   }
 });
 
-const PORT = 3001;
 const app = express();
 
 app.use(bodyParser.json());
