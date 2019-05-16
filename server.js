@@ -5,7 +5,7 @@ import cors from "cors";
 import knex from "knex";
 import register from "./controllers/Rigester";
 import signin from "./controllers/Signin";
-import imageHandle from "./controllers/Image";
+import { imageHandle, apiCall } from "./controllers/Image";
 import getProfile from "./controllers/Profile";
 
 const db = knex({
@@ -43,5 +43,8 @@ app.get("/profile/:id", (req, res) => getProfile(res, req, db));
 
 //Updete Rank
 app.put("/image", (req, res) => imageHandle(req, res, db));
+
+// Get the face dimensions
+app.put("/imageurl", (req, res) => apiCall(req, res));
 
 app.listen(PORT, () => console.log(`app is running on port ${PORT}`));

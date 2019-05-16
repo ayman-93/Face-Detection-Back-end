@@ -1,6 +1,10 @@
 const register = (req, res, db, bcrypt) => {
   const { name, email, password } = req.body;
   const hash = bcrypt.hashSync(password);
+  if (!name || !email || !password) {
+    return res.status(400).json("Incorrect form submission");
+  }
+  // db.select('email').from('users').where('email','=',email)
   db.transaction(trx => {
     trx
       .insert({ hash, email })
