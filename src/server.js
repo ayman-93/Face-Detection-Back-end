@@ -8,7 +8,7 @@ import signin from "./controllers/Signin";
 import { imageHandle, apiCall } from "./controllers/Image";
 import getProfile from "./controllers/Profile";
 
-const PORT = process.env.port || 3001;
+const PORT = process.env.PORT || 3001;
 const db = knex({
   client: "pg",
   connection: {
@@ -21,8 +21,8 @@ const db = knex({
 
 const app = express();
 
+app.use(cors({ origin: process.env.CLIENT_ORIGIN, credentials: true }));
 app.use(bodyParser.json());
-app.use(cors());
 
 app.get("/", (req, res) => {
   db("users")
