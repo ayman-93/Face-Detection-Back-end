@@ -12,10 +12,8 @@ const PORT = process.env.PORT || 3001;
 const db = knex({
   client: "pg",
   connection: {
-    host: "127.0.0.1",
-    user: "ayman",
-    password: "7533",
-    database: "smart-brain"
+    host: process.env.DATABASE_URL,
+    ssl: true
   }
 });
 
@@ -47,4 +45,8 @@ app.put("/image", (req, res) => imageHandle(req, res, db));
 // Get the face dimensions
 app.put("/imageurl", (req, res) => apiCall(req, res));
 
-app.listen(PORT, () => console.log(`app is running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(
+    `app is running on port ${PORT} databaseUrl ${process.env.DATABASE_URL}`
+  )
+);
